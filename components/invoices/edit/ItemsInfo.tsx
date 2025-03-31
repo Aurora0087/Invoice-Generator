@@ -1,12 +1,13 @@
-import { View, Text, useColorScheme, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, useColorScheme, TouchableOpacity, TextInput, Platform, ToastAndroid, Alert } from 'react-native'
 import React from 'react'
 import { NewInvoiceProp } from '@/store/store'
 import { ItemsSchema, ItemsSchemaProp } from '@/schema/items'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
+import { updateInvoice } from '@/db/db';
 
-export default function ItemsInfo({ invoice, addItemsInfo }: { invoice: NewInvoiceProp, addItemsInfo: (ItemsInfo: ItemsSchemaProp) => void }) {
+export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewInvoiceProp, id: number, addItemsInfo: (ItemsInfo: ItemsSchemaProp) => void }) {
 
     const { control, handleSubmit, formState: { errors }, watch } = useForm<ItemsSchemaProp>({
         resolver: zodResolver(ItemsSchema),
@@ -17,7 +18,7 @@ export default function ItemsInfo({ invoice, addItemsInfo }: { invoice: NewInvoi
             shipping: invoice.ItemsInfo.shipping || 0,
             payed: invoice.ItemsInfo.payed || 0,
         },
-        mode: 'onChange', // This ensures validation and updates happen on each change
+        mode: 'onChange',
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -76,8 +77,16 @@ export default function ItemsInfo({ invoice, addItemsInfo }: { invoice: NewInvoi
     // Calculate total once whenever the component renders
     const { totalSum, amountDue } = calculateTotal();
 
-    const onSubmit = (data: ItemsSchemaProp) => {
-        addItemsInfo(data);
+    const onSubmit = async (data: ItemsSchemaProp) => {
+        try {
+            addItemsInfo(data);
+            await updateInvoice(id, { ...invoice, ItemsInfo: data });
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Sender info updated.', ToastAndroid.SHORT);
+            }
+        } catch (error) {
+            Alert.alert('Unable to Update. error: ', String(error));
+        }
     };
 
     const colorScheme = useColorScheme();
@@ -301,11 +310,10 @@ export default function ItemsInfo({ invoice, addItemsInfo }: { invoice: NewInvoi
 
                 {/* Next Button */}
                 <TouchableOpacity
-                    className=" bg-blue-400 text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                    className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
-                    <Text className="text-white font-bold text-center text-base">Update</Text>
-                    <Ionicons name="arrow-forward" size={16} color='white' />
+                    <Text className="text-white font-bold text-center text-base">Update Item info</Text>
                 </TouchableOpacity>
             </View>
         </View>

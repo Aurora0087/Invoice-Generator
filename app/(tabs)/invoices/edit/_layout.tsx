@@ -1,16 +1,16 @@
 import { Stack } from "expo-router";
 
-export default function GenarateInvoiceLayout() {
+export default function InvoiceEditLayout() {
     return (
         <>
             <Stack screenOptions={{
-                headerShown: true,
+                headerShown: false,
                 animation: "slide_from_right",
                 presentation: "transparentModal",
                 animationDuration: 200,
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
-                headerTitle: "New Invoice",
+                headerTitle: "Invoice Edit",
                 headerStyle: {
                     backgroundColor: '#00B2E7',
                 },

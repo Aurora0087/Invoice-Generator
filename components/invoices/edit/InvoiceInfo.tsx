@@ -1,16 +1,16 @@
-import { View, Text, useColorScheme, TouchableOpacity, TextInput } from 'react-native'
+import { View, Text, useColorScheme, TouchableOpacity, TextInput, Platform, ToastAndroid, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { NewInvoiceProp } from '@/store/store'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { Ionicons } from '@expo/vector-icons';
 import { InvoiceInfoSchema, InvoiceInfoSchemaProp } from '@/schema/invoice-info';
 import { formatDate, parseDate } from '@/utils';
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { updateInvoice } from '@/db/db';
 
-export default function InvoiceInfo({ invoice, addInvoiceInfo }: {
-    invoice: NewInvoiceProp, addInvoiceInfo: (invoiceInfo: {
+export default function InvoiceInfo({ invoice, addInvoiceInfo, id }: {
+    invoice: NewInvoiceProp, id: number, addInvoiceInfo: (invoiceInfo: {
         invoiceNumber: string;
         orderId: string;
         date: string;
@@ -31,13 +31,24 @@ export default function InvoiceInfo({ invoice, addInvoiceInfo }: {
         }
     });
 
-    const onSubmit = (data: InvoiceInfoSchemaProp) => {
-        addInvoiceInfo({
-            invoiceNumber: data.invoiceNumber,
-            orderId: data.orderId,
-            date: formatDate(data.date),
-            dueDate: formatDate(data.dueDate),
-        });
+    const onSubmit = async (data: InvoiceInfoSchemaProp) => {
+
+        try {
+            const formatedData = {
+                invoiceNumber: data.invoiceNumber,
+                orderId: data.orderId,
+                date: formatDate(data.date),
+                dueDate: formatDate(data.dueDate),
+            };
+            addInvoiceInfo(formatedData);
+            await updateInvoice(id, { ...invoice, invoiceInfo: formatedData });
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Sender info updated.', ToastAndroid.SHORT);
+            }
+        } catch (error) {
+            Alert.alert('Unable to Update. error: ', String(error));
+        }
+
     };
 
 
@@ -164,11 +175,10 @@ export default function InvoiceInfo({ invoice, addInvoiceInfo }: {
                 />
 
                 <TouchableOpacity
-                    className=" bg-blue-400 text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                    className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
-                    <Text className="text-white font-bold text-center text-base">Update</Text>
-                    <Ionicons name="arrow-forward" size={16} color='white' />
+                    <Text className="text-white font-bold text-center text-base">Update invoice info</Text>
                 </TouchableOpacity>
             </View>
         </View>

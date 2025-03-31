@@ -1,12 +1,21 @@
-import { View, Text, useColorScheme, TouchableOpacity, TextInput } from 'react-native'
+import {
+    View,
+    Text,
+    useColorScheme,
+    TouchableOpacity,
+    TextInput,
+    Alert,
+    ToastAndroid,
+    Platform
+} from 'react-native'
 import React from 'react'
 import { NewInvoiceProp } from '@/store/store'
 import { SenderInfoSchema, SenderInfoSchemaProp } from '@/schema/sender'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { Ionicons } from '@expo/vector-icons';
+import { updateInvoice } from '@/db/db';
 
-export default function SenderInfo({ invoice, addSenderInfo }: { invoice: NewInvoiceProp, addSenderInfo: (senderInfo: SenderInfoSchemaProp) => void }) {
+export default function SenderInfo({ invoice, id, addSenderInfo }: { invoice: NewInvoiceProp, id: number, addSenderInfo: (senderInfo: SenderInfoSchemaProp) => void }) {
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(SenderInfoSchema),
@@ -19,8 +28,16 @@ export default function SenderInfo({ invoice, addSenderInfo }: { invoice: NewInv
         }
     });
 
-    const onSubmit = (data: SenderInfoSchemaProp) => {
-        addSenderInfo(data)
+    const onSubmit = async (data: SenderInfoSchemaProp) => {
+        try {
+            addSenderInfo(data);
+            await updateInvoice(id, { ...invoice, senderInfo: data });
+            if (Platform.OS === 'android') {
+                ToastAndroid.show('Sender info updated.', ToastAndroid.SHORT);
+            }
+        } catch (error) {
+            Alert.alert('Unable to Update. error: ', String(error));
+        }
     };
 
     const colorScheme = useColorScheme();
@@ -143,11 +160,10 @@ export default function SenderInfo({ invoice, addSenderInfo }: { invoice: NewInv
                 />
 
                 <TouchableOpacity
-                    className=" bg-blue-400 text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                    className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
-                    <Text className="text-white font-bold text-center text-base">Update</Text>
-                    <Ionicons name="arrow-forward" size={16} color='white' />
+                    <Text className="text-white font-bold text-center text-base">Update Client info</Text>
                 </TouchableOpacity>
             </View>
         </View>

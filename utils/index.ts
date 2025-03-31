@@ -15,7 +15,7 @@ export async function getImageAsBase64(uri: string) {
         return `data:image/png;base64,${base64}`;
     } catch (error) {
         console.error("Error reading image:", error);
-        return '';
+        throw error;
     }
 }
 
@@ -411,19 +411,18 @@ export function generateHtml(newInvoice: NewInvoiceProp) {
 
 
 export function formatDate(date: Date) {
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric'
-    });
+    const day = date.toLocaleDateString('en', { day: '2-digit' });
+    const month = date.toLocaleDateString('en', { month: '2-digit' });
+    const year = date.toLocaleDateString('en', { year: 'numeric' });
+    return `${day}/${month}/${year}`;
 };
 
 export function parseDate(dateStr: string): Date | null {
     const parts = dateStr.split("/");
     if (parts.length !== 3) return null;
 
-    const month = parseInt(parts[0], 10) - 1;
-    const day = parseInt(parts[1], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[0], 10);
     const year = parseInt(parts[2], 10);
 
     const date = new Date(year, month, day);

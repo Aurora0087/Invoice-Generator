@@ -1,12 +1,12 @@
 import InvoicePreviewCard from '@/components/invoices/InvoicePreviewCard';
 import PaymentDetailsCard from '@/components/PaymentDetailsCard';
-import { deleteInvoice, getAllInvoice, getInvoiceStatistics } from '@/db/db';
+import { deleteInvoice, getInvoiceStatistics } from '@/db/db';
 import Ionicons from '@expo/vector-icons/build/Ionicons';
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Text, View, TouchableOpacity, FlatList, RefreshControl, Alert, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function Index() {
 
@@ -28,7 +28,7 @@ export default function Index() {
       setTotalInvoices(res.totalInvoices);
     } catch (error) {
       console.log(error);
-      Alert.alert(String(error));
+      Alert.alert("Error while geting Invoice statics.", String(error));
     }
     setRefreshing(false);
   }
@@ -38,9 +38,11 @@ export default function Index() {
     setInvoices((prev) => prev.filter((invoice) => invoice.id !== id));
   }
 
-  useEffect(() => {
-    getInvoices();
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      getInvoices();
+    }, [])
+  )
 
   const renderRightActions = (id: number) => (
     <TouchableOpacity
@@ -51,11 +53,12 @@ export default function Index() {
       <Text className="text-white font-bold text-center text-base">Delete</Text>
     </TouchableOpacity>
   );
+
   return (
-    <View className=' w-full h-full flex justify-between gap-4 p-8 px-4 dark:bg-slate-900 dark:text-white'>
-      <Link href={{ pathname: '/invoices/generate' }} asChild>
+    <View className=' w-full h-full flex justify-between gap-4 p-4 py-8 dark:bg-slate-900 dark:text-white'>
+      <Link href={{ pathname: '/generate' }} asChild>
         <TouchableOpacity
-          className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+          className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl flex flex-row items-center justify-center gap-2"
         >
           <Ionicons name="add" size={16} color='white' />
           <Text className="text-white font-bold text-center text-base">New Invoice</Text>
@@ -89,9 +92,6 @@ export default function Index() {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <Swipeable
-              key={item.id}
-              rightThreshold={40}
-              enableTrackpadTwoFingerGesture
               renderRightActions={() => renderRightActions(item.id)}
             >
               <InvoicePreviewCard

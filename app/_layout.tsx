@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import "../global.css"
+import "../global.css";
 
 import { ThemeProvider } from '@/context/theme.context';
 import { SQLiteProvider } from 'expo-sqlite';
@@ -58,7 +58,6 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </SQLiteProvider>
-
     </ThemeProvider>
   );
 }

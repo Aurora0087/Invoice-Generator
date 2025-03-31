@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useStore } from '@/store/store';
-import { useRouter } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import { generateHtml, getImageAsBase64 } from '@/utils';
 import { shareAsync } from 'expo-sharing';
@@ -80,7 +80,16 @@ export default function preview() {
     }
 
     return (
-        <View className='p-4 bg-white dark:bg-gray-900 flex-1'>
+        <View className='p-4 dark:bg-gray-900 flex-1'>
+            <Tabs.Screen options={{
+                headerShown: true, headerTitle: 'Pdf Preview', headerStyle: {
+                    backgroundColor: '#00B2E7',
+                },
+                headerTitleStyle: {
+                    fontWeight: '600',
+                    color: 'white',
+                },
+            }} />
             <ScrollView horizontal={true} scrollEnabled style={{ marginTop: 10 }}>
                 <View style={{ width: 720, minHeight: 600, height: '100%', flex: 1 }}>
                     <WebView
@@ -103,6 +112,7 @@ export default function preview() {
                 <Ionicons name="print" size={16} color='white' />
                 <Text className="text-white font-bold text-center text-base">Genaret Invoice Pdf</Text>
             </TouchableOpacity>
+            <View className=' h-24' />
         </View>
     )
 }

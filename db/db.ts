@@ -149,6 +149,22 @@ export function createInvoice(invoice: NewInvoiceProp): Promise<number | null> {
         const db = await getDatabase();
         let newInvoiceId: number | null = null;
 
+        let isInvoiceExist = await db.getFirstAsync(`
+            SELECT invoiceNumber, orderId FROM invoices WHERE invoiceNumber = ?
+            `, invoice.invoiceInfo.invoiceNumber);
+
+        if (isInvoiceExist) {
+            reject("Invoice with this invoice Number already exist.")
+        }
+
+        isInvoiceExist = await db.getFirstAsync(`
+            SELECT invoiceNumber, orderId FROM invoices WHERE orderId = ?
+            `, invoice.invoiceInfo.orderId);
+
+        if (isInvoiceExist) {
+            reject("Invoice with this order Id already exist.")
+        }
+
         await db.withTransactionAsync(async () => {
 
             let res = await db.runAsync(`
@@ -461,7 +477,7 @@ export function searchInvoices(criteria: {
     recipientName?: string,
     fromDate?: string,
     toDate?: string
-}): Promise<{ id: number, invoiceNumber: string, recipientName: string, date: string, amount: number }[]> {
+}): Promise<{ id: number, invoiceNumber: string, recipientName: string, date: string, amount: number, currency: string }[]> {
     return new Promise(async (resolve, reject) => {
 
         const db = await getDatabase();

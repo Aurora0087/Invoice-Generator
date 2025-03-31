@@ -6,15 +6,17 @@ export default function InvoicePreviewCard({ amount, date, id, invoiceNumber, re
     const router = useRouter();
     return (
         <TouchableHighlight onPress={() => {
-            router.push(`/invoices/details/${id}`)
+            router.push(`/(tabs)/invoices/details/${id}`)
         }}>
-            <View className="bg-gray-700 p-4 rounded-2xl my-2 flex flex-row justify-between">
+            <View className=" bg-gray-200 dark:bg-gray-700 p-4 rounded-2xl my-2 flex flex-row justify-between">
                 <View>
-                    <Text className="text-white font-bold">{invoiceNumber}</Text>
-                    <Text className="text-gray-400">{recipientName}</Text>
-                    <Text className="text-gray-400">{date}</Text>
+                    <Text className="dark:text-white font-bold">{invoiceNumber}</Text>
+                    <Text className="dark:text-gray-400">{recipientName}</Text>
+                    <Text className="dark:text-gray-400">{date}</Text>
                 </View>
-                <Text className="text-green-400 font-bold">{currency}{amount}</Text>
+                <View>
+                    <Text className="text-green-600 dark:text-green-400 font-bold">{currency}{amount}</Text>
+                </View>
             </View>
         </TouchableHighlight>
     )

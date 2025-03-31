@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Tabs, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
 import { getInvoiceById } from '@/db/db';
 import { NewInvoiceProp, useStore } from '@/store/store';
 import { Image } from 'react-native';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import { generateHtml, getImageAsBase64 } from '@/utils';
 import { shareAsync } from 'expo-sharing';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function InvoiceDetailsScreen() {
 
@@ -34,9 +35,11 @@ export default function InvoiceDetailsScreen() {
         setIsLoading(false)
     }
 
-    useEffect(() => {
-        getInvoice(Number(id))
-    }, [id])
+    useFocusEffect(
+        useCallback(() => {
+            getInvoice(Number(id))
+        }, [id])
+    )
 
     useEffect(() => {
         if (invoice) {
@@ -62,7 +65,7 @@ export default function InvoiceDetailsScreen() {
             setGrandTotal(grandTotalValue);
 
         }
-    }, [invoice])
+    }, [invoice, id])
 
 
     async function generatePdf() {
@@ -73,11 +76,26 @@ export default function InvoiceDetailsScreen() {
             }
             // Get the logo image as base64
             const logoPath = invoice.logoImg;
-            const logoBase64 = await getImageAsBase64(logoPath);
+
+            let logoBase64 = "";
+            let signBase64 = "";
+
+            try {
+                logoBase64 = await getImageAsBase64(logoPath);
+            } catch (error) {
+                Alert.alert("Cant get Logo image from cache.", String(error));
+                return
+            }
 
             // Get the signature image as base64 (if you have one)
             const signPath = invoice.signImg;
-            const signBase64 = await getImageAsBase64(signPath);
+
+            try {
+                signBase64 = await getImageAsBase64(signPath);
+            } catch (error) {
+                Alert.alert("Cant get sign image from cache.", String(error));
+                return
+            }
 
             // Replace the file paths in your invoice data
             const updatedInvoice = {
@@ -101,6 +119,7 @@ export default function InvoiceDetailsScreen() {
             await shareAsync(file.uri);
         } catch (error) {
             console.error("Error generating PDF:", error);
+            Alert.alert("Fail to genaret Pdf.", String(error));
         }
     }
 
@@ -109,7 +128,7 @@ export default function InvoiceDetailsScreen() {
             return
         }
         addAllData(invoice);
-        router.push('/invoices/edit/preview');
+        router.push('/(tabs)/preview');
     }
 
     function editInvoice() {
@@ -117,17 +136,19 @@ export default function InvoiceDetailsScreen() {
             return
         }
         addAllData(invoice)
-        router.push('/invoices/edit');
+        router.push({ pathname: '/invoices/edit', params: { invoiceId: `${id}` } });
     }
 
     return (
-        <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+        <ScrollView className="flex-1 dark:bg-gray-900">
             {
                 invoice !== null ? (
-                    <View>
+                    <Animated.View
+                        entering={FadeInDown.duration(500)}
+                        className=''>
                         <View className="gap-4 p-6">
                             {/* sender info */}
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <Text className="dark:text-white text-2xl font-bold mb-4">From</Text>
                                 <View className="flex gap-1">
                                     <Text className="text-base font-medium dark:text-white">Sender Name :</Text>
@@ -161,7 +182,7 @@ export default function InvoiceDetailsScreen() {
                             </View>
 
                             {/* Client info */}
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <Text className="dark:text-white text-2xl font-bold mb-4">To</Text>
                                 <View className="flex gap-1">
                                     <Text className="text-base font-medium dark:text-white">Client Name :</Text>
@@ -191,7 +212,7 @@ export default function InvoiceDetailsScreen() {
                             </View>
 
                             {/* invoice info */}
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <Text className="dark:text-white text-2xl font-bold mb-4">Invoice Details</Text>
                                 <View className="flex gap-1">
                                     <Text className="text-base font-medium dark:text-white">Invoice ID :</Text>
@@ -220,7 +241,7 @@ export default function InvoiceDetailsScreen() {
                             </View>
 
                             {/* Items info */}
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <Text className="dark:text-white text-2xl font-bold mb-4">Items</Text>
                                 <View className="flex-row justify-between mb-2">
                                     <Text className="text-base flex-shrink font-bold dark:text-white w-1/3">Item</Text>
@@ -231,7 +252,7 @@ export default function InvoiceDetailsScreen() {
                                 {invoice.ItemsInfo.items.map((item, index) => (
                                     <View
                                         key={index}
-                                        className="flex-row justify-between py-2 border-b border-gray-200 dark:border-gray-700"
+                                        className="flex-row justify-between py-2 border-b border-gray-400"
                                     >
                                         <Text className="text-base flex-shrink dark:text-white w-1/3">{item.name}</Text>
                                         <Text className="text-base flex-shrink dark:text-white w-1/4 text-right">{item.quantity}</Text>
@@ -242,7 +263,7 @@ export default function InvoiceDetailsScreen() {
                             </View>
 
                             {/* Total */}
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <Text className="dark:text-white text-2xl font-bold mb-4">Totals</Text>
                                 <View className="flex-row justify-between mb-2">
                                     <Text className="text-base font-medium dark:text-white">Subtotal</Text>
@@ -260,26 +281,26 @@ export default function InvoiceDetailsScreen() {
                                     <Text className="text-base font-medium dark:text-white">Shipping</Text>
                                     <Text className="text-base font-medium dark:text-white">{invoice.currency}{invoice.ItemsInfo.shipping}</Text>
                                 </View>
-                                <View className="flex-row justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                <View className="flex-row justify-between mt-2 pt-2 border-t border-gray-400">
                                     <Text className="text-base font-bold dark:text-white">Grand Total</Text>
-                                    <Text className="text-base font-bold dark:text-white">{invoice.currency}{grandTotal}</Text>
+                                    <Text className="text-base text-green-600 dark:text-green-400 font-bold">{invoice.currency}{grandTotal}</Text>
                                 </View>
                             </View>
 
-                            <View className="gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                            <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                                 <View className="flex-row justify-between mb-2">
                                     <Text className="text-base font-medium dark:text-white">Payed Amount</Text>
                                     <Text className="text-base font-medium dark:text-white">{invoice.currency}{invoice.ItemsInfo.payed}</Text>
                                 </View>
                                 <View className="flex-row justify-between mb-2">
                                     <Text className="text-base font-medium dark:text-white">Amount due</Text>
-                                    <Text className="text-base font-medium dark:text-white">{invoice.currency}{(grandTotal - invoice.ItemsInfo.payed).toFixed(2)}</Text>
+                                    <Text className="text-base font-medium text-green-600 dark:text-green-400">{invoice.currency}{(grandTotal - invoice.ItemsInfo.payed).toFixed(2)}</Text>
                                 </View>
                             </View>
 
                             {
                                 invoice.logoImg.length > 1 &&
-                                <Image source={{ uri: invoice.logoImg }} className='w-48 h-48 border rounded-2xl' />
+                                <Image source={{ uri: invoice.logoImg }} className='w-48 h-48 border rounded-2xl self-center' />
                             }
 
                             {
@@ -297,7 +318,7 @@ export default function InvoiceDetailsScreen() {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                                className=" bg-[#E064F7] text-white py-4 px-6 rounded-2xl mt-4 flex flex-row items-center justify-center gap-2"
                                 onPress={previewInvoice}
                             >
                                 <Ionicons name="document" size={16} color='white' />
@@ -305,7 +326,7 @@ export default function InvoiceDetailsScreen() {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                                className=" bg-[#FF8D6C] text-white py-4 px-6 rounded-2xl mt-4 flex flex-row items-center justify-center gap-2"
                                 onPress={editInvoice}
                             >
                                 <Ionicons name="pencil" size={16} color='white' />
@@ -313,17 +334,18 @@ export default function InvoiceDetailsScreen() {
                             </TouchableOpacity>
                         </View>
 
-                    </View>
+                    </Animated.View>
                 ) : (
                     isLoading ?
-                        <View>
+                        <View className=' flex-1 items-center justify-center'>
                             <Text className="text-base font-medium dark:text-white">Loading...</Text>
                         </View> :
-                        <View>
+                        <View className=' flex-1 items-center justify-center'>
                             <Text className="text-base font-medium dark:text-white">No Invoice</Text>
                         </View>
                 )
             }
+            <View className=' h-24' />
         </ScrollView>
     )
 }

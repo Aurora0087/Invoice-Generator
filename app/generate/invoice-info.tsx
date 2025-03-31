@@ -53,14 +53,14 @@ export default function InvoiceInfo() {
             date: formatDate(data.date),
             dueDate: formatDate(data.dueDate),
         });
-        router.push('/invoices/generate/items');
+        router.push('/generate/items');
     };
 
     const colorScheme = useColorScheme();
     const placeholderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
 
     return (
-        <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+        <ScrollView className="flex-1 bg-gray-100 dark:bg-gray-900">
             <View className="p-6">
                 <Text className="dark:text-white text-2xl font-bold py-8 text-center">Invoice Info</Text>
 

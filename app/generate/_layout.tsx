@@ -1,16 +1,18 @@
+import InvoiceGenHeader from "@/components/invoices/generate/Header";
 import { Stack } from "expo-router";
 
-export default function InvoiceEditLayout() {
+export default function GenarateInvoiceLayout() {
     return (
         <>
             <Stack screenOptions={{
                 headerShown: true,
+                header: (props) => <InvoiceGenHeader {...props} />,
                 animation: "slide_from_right",
                 presentation: "transparentModal",
                 animationDuration: 200,
                 gestureEnabled: true,
                 gestureDirection: "horizontal",
-                headerTitle: "Invoice Edit",
+                headerTitle: "New Invoice",
                 headerStyle: {
                     backgroundColor: '#00B2E7',
                 },
