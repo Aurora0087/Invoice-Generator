@@ -1,6 +1,8 @@
+import { getDatabase } from "@/db/db";
 import { NewInvoiceProp } from "@/store/store";
 
 import * as FileSystem from 'expo-file-system';
+import { SQLiteDatabase } from "expo-sqlite";
 
 
 // Function to convert image to base64
@@ -320,17 +322,16 @@ export function generateHtml(newInvoice: NewInvoiceProp) {
                 <div class="info-title">Billed to</div>
                 <div class="info-value bold">${newInvoice.recipientInfo.name}</div>
                 <div class="info-value">${newInvoice.recipientInfo.address}</div>
-                <div class="info-value">${newInvoice.recipientInfo.email}</div>
+                <div class="info-value">${!newInvoice.recipientInfo.email ? '' : newInvoice.recipientInfo.email}</div>
                 <div class="info-value">${!newInvoice.recipientInfo.phone ? '' : newInvoice.recipientInfo.phone}</div>
             </div>
             <div class="info-column">
                 <div class="info-title">From</div>
                 <div class="info-value">${newInvoice.senderInfo.name}</div>
                 <div class="info-value">${newInvoice.senderInfo.address}</div>
-                <div class="info-value">${newInvoice.senderInfo.email}</div>
-                <div class="info-value">${newInvoice.senderInfo.phone}</div>
-                ${newInvoice.senderInfo.taxId && `<div class="info-value">TAX ID:${newInvoice.senderInfo.taxId}</div>`
-        }
+                ${!newInvoice.senderInfo.email ? "" : `<div class="info-value">${newInvoice.senderInfo.email}</div>`}
+                ${!newInvoice.senderInfo.phone ? "" : `<div class="info-value">${newInvoice.senderInfo.phone}</div>`}
+                ${!newInvoice.senderInfo.taxId ? "" : `<div class="info-value">TAX ID:${newInvoice.senderInfo.taxId}</div>`}
             </div>
         </div>
         <table class="invoice-table">
@@ -344,7 +345,7 @@ export function generateHtml(newInvoice: NewInvoiceProp) {
             </thead>
             <tbody>
             ${newInvoice.ItemsInfo.items.map((itm) =>
-            `
+        `
         <tr>
                     <td>
                         <div class="service-name">${itm.name}</div>
@@ -354,7 +355,7 @@ export function generateHtml(newInvoice: NewInvoiceProp) {
                     <td>${newInvoice.currency}${(itm.quantity * itm.price).toFixed(2)}</td>
                 </tr>
         `
-        ).join('')
+    ).join('')
         }
             </tbody>
         </table>
@@ -395,8 +396,8 @@ export function generateHtml(newInvoice: NewInvoiceProp) {
         <div class="footer">
             <div class="thank-you">Thank you for the business!</div>
             <div class="contact-info">
-                <div>${newInvoice.senderInfo.phone}</div>
-                <div>${newInvoice.senderInfo.email}</div>
+                <div>${!newInvoice.senderInfo.phone ? '' : newInvoice.senderInfo.phone}</div>
+                <div>${!newInvoice.senderInfo.email ? '' : newInvoice.senderInfo.email}</div>
             </div>
            ${newInvoice.signImg.length > 1 ? `<div class="signature-container">
                 <img class="signature-img" src="${newInvoice.signImg}" alt="Signature">
@@ -414,11 +415,11 @@ export function formatDate(date: Date) {
     const day = date.toLocaleDateString('en', { day: '2-digit' });
     const month = date.toLocaleDateString('en', { month: '2-digit' });
     const year = date.toLocaleDateString('en', { year: 'numeric' });
-    return `${day}/${month}/${year}`;
+    return `${day}-${month}-${year}`;
 };
 
 export function parseDate(dateStr: string): Date | null {
-    const parts = dateStr.split("/");
+    const parts = dateStr.split("-");
     if (parts.length !== 3) return null;
 
     const month = parseInt(parts[1], 10) - 1;
@@ -428,3 +429,100 @@ export function parseDate(dateStr: string): Date | null {
     const date = new Date(year, month, day);
     return isNaN(date.getTime()) ? null : date;
 }
+
+
+
+
+// --- Helper function to escape CSV values ---
+const escapeCsvValue = (value: any): string => {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    const stringValue = String(value);
+    // If the value contains a comma, newline, or double quote, enclose it in double quotes
+    if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+        // Escape existing double quotes by doubling them
+        const escapedValue = stringValue.replace(/"/g, '""');
+        return `"${escapedValue}"`;
+    }
+    return stringValue;
+};
+
+// --- Helper function to convert array of objects to CSV string ---
+const convertDataToCsvString = (data: any[]): string => {
+    if (!data || data.length === 0) {
+        return ''; // Return empty string if no data
+    }
+
+    const headers = Object.keys(data[0]);
+    const headerRow = headers.map(escapeCsvValue).join(',');
+
+    const dataRows = data.map(row => {
+        return headers.map(header => escapeCsvValue(row[header])).join(',');
+    });
+
+    return [headerRow, ...dataRows].join('\n');
+};
+
+const getTableHeaders = async (db: SQLiteDatabase, tableName: string): Promise<string[]> => {
+    try {
+        const result = await db.getAllAsync<{ name: string }>(`PRAGMA table_info(${tableName});`);
+        return result.map(col => col.name);
+    } catch (e) {
+        console.error(`Failed to get headers for table ${tableName}:`, e);
+        return []; // Return empty array on error
+    }
+};
+
+/**
+ * Exports data from all specified tables into individual CSV files.
+ * @returns {Promise<string[]>} A promise that resolves with an array of file URIs for the created CSV files.
+ * @throws {Error} If database access or file system operations fail.
+ */
+export const exportAllTablesToCsv = async (csvExportDir: string): Promise<string[]> => {
+    const db = await getDatabase();
+    const tablesToExport = [
+        'invoices',
+        'sender_info',
+        'recipient_info',
+        'invoice_items'
+    ];
+    const createdFilePaths: string[] = [];
+
+    try {
+        await FileSystem.makeDirectoryAsync(csvExportDir, { intermediates: true });
+
+        for (const tableName of tablesToExport) {
+
+            const tableData = await db.getAllAsync<any[]>(`SELECT * FROM ${tableName}`);
+
+            if (tableData && tableData.length > 0) {
+                const csvString = convertDataToCsvString(tableData);
+                const filePath = `${csvExportDir}${tableName}.csv`;
+
+                await FileSystem.writeAsStringAsync(filePath, csvString, {
+                    encoding: FileSystem.EncodingType.UTF8,
+                });
+                createdFilePaths.push(filePath);
+
+            } else {
+                const headers = await getTableHeaders(db, tableName);
+                const headerString = headers.map(escapeCsvValue).join('\n');
+                const filePath = `${csvExportDir}${tableName}.csv`;
+                await FileSystem.writeAsStringAsync(filePath, headerString, {
+                    encoding: FileSystem.EncodingType.UTF8,
+                });
+                createdFilePaths.push(filePath);
+
+            }
+        }
+
+        //console.log('CSV export completed successfully.');
+        return createdFilePaths;
+
+    } catch (error) {
+        console.error('Failed to export tables to CSV:', error);
+
+        throw error;
+    }
+};

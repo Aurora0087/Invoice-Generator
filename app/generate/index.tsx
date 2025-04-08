@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, useColorScheme } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, useColorScheme, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/store/store';
 import { SenderInfoSchema, SenderInfoSchemaProp } from '@/schema/sender';
 import Ionicons from '@expo/vector-icons/build/Ionicons';
-import { getSetting, initDatabase, saveSetting } from '@/db/db';
+
+import { Picker } from '@react-native-picker/picker';
+
+import { getSetting, saveSetting } from '@/db/db';
 
 export default function GenerateInvoice() {
 
   const [isLoading, setIsLoading] = useState(true);
+  const [useDefaultSenderInfo, setUseDefaultSenderInfo] = useState(-1);
+  const [isDefaultSenderInfoExist, setIsDefaultSenderInfoExist] = useState(false);
 
   const router = useRouter();
 
@@ -20,49 +25,54 @@ export default function GenerateInvoice() {
     defaultValues: {
       name: '',
       address: '',
-      taxId: '',
-      email: '',
-      phone: ''
+      taxId: undefined,
+      email: undefined,
+      phone: undefined
     }
   });
 
-  useEffect(() => {
-    async function setUp() {
-      try {
-        await initDatabase();
+  async function setDefultSenderData() {
+    try {
+      // Load saved settings
+      const senderName = await getSetting('defaultSenderName');
+      const senderAddress = await getSetting('defaultSenderAddress');
+      const senderEmail = await getSetting('defaultSenderEmail');
+      const senderTaxId = await getSetting('defaultSenderTaxId');
+      const senderPhone = await getSetting('defaultSenderPhone');
 
-        // Load saved settings
-        const senderName = await getSetting('defaultSenderName');
-        const senderAddress = await getSetting('defaultSenderAddress');
-        const senderEmail = await getSetting('defaultSenderEmail');
-        const senderTaxId = await getSetting('defaultSenderTaxId');
-        const senderPhone = await getSetting('defaultSenderPhone');
-
-        // Create form values object with fallbacks
-        const formValues = {
-          name: senderName || '',
-          address: senderAddress || '',
-          email: senderEmail || '',
-          taxId: senderTaxId || '',
-          phone: senderPhone || ''
-        };
-
-        // Set form values
-        setValue('name', formValues.name);
-        setValue('address', formValues.address);
-        setValue('email', formValues.email);
-        setValue('taxId', formValues.taxId);
-        setValue('phone', formValues.phone);
-
-      } catch (error) {
-        console.error('Error in setUp:', error);
-      } finally {
-        setIsLoading(false);
+      if (senderName && senderName.length > 1) {
+        setIsDefaultSenderInfoExist(true);
       }
-    }
 
-    setUp();
-  }, []);
+      // Set form values
+      setValue('name', senderName || '');
+      setValue('address', senderAddress || '');
+      setValue('email', senderEmail || undefined);
+      setValue('taxId', senderTaxId || undefined);
+      setValue('phone', senderPhone || undefined);
+
+    } catch (error) {
+      console.error('Error in setUp:', error);
+      Alert.alert("Can't get DefultSenderData", String(error))
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
+  useEffect(() => {
+    if (useDefaultSenderInfo === -1) {
+      setDefultSenderData();
+    }
+    else {
+      setValue('name', '');
+      setValue('address', '');
+      setValue('email', undefined);
+      setValue('taxId', undefined);
+      setValue('phone', undefined);
+
+    }
+  }, [useDefaultSenderInfo]);
 
   // save data in db
   async function saveSenderInfo(data: SenderInfoSchemaProp) {
@@ -74,8 +84,10 @@ export default function GenerateInvoice() {
   }
 
   const onSubmit = (data: SenderInfoSchemaProp) => {
-    addSenderInfo(data)
-    saveSenderInfo(data);
+    addSenderInfo(data);
+    if (!isDefaultSenderInfoExist) {
+      saveSenderInfo(data);
+    }
     router.push('/generate/recipient');
   };
 
@@ -86,6 +98,38 @@ export default function GenerateInvoice() {
     <ScrollView className='flex-1 bg-gray-100 dark:bg-gray-900'>
       <View className=' p-6'>
         <Text className=' dark:text-white text-2xl font-bold py-8 text-center'>Sender Info</Text>
+
+        {isDefaultSenderInfoExist && <View className='overflow-hidden rounded-2xl mb-4'>
+          <Picker
+            onValueChange={(c) =>
+              setUseDefaultSenderInfo(c)
+            }
+            selectedValue={useDefaultSenderInfo}
+            className=' text-white'
+            mode='dropdown'
+            style={{
+              backgroundColor: "#00B2E7",
+              color: "white"
+            }}
+            dropdownIconColor={'white'}
+          >
+            <Picker.Item
+              style={{
+                backgroundColor: "#00B2E7",
+                color: "white",
+              }}
+              label="Default Sender Info"
+              value={-1} />
+            <Picker.Item
+              style={{
+                backgroundColor: "#E064F7",
+                color: "white",
+              }}
+              label="Coustom Sender Info"
+              value={1} />
+          </Picker>
+        </View>}
+
         {/* Name Input */}
         <Controller
           control={control}

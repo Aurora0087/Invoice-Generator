@@ -1,12 +1,15 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Pressable } from 'react-native'
 import React from 'react'
 import { NativeStackHeaderProps } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import { Link } from 'expo-router';
+import { useTheme } from '@/context/theme.context';
+import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function InvoiceGenHeader({ navigation, route, options, back }: NativeStackHeaderProps) {
+export default function SettingHeader({ navigation, route, options, back }: NativeStackHeaderProps) {
 
+    const { theme, toggleTheme } = useTheme();
 
     const insets = useSafeAreaInsets();
 
@@ -33,14 +36,18 @@ export default function InvoiceGenHeader({ navigation, route, options, back }: N
                     <Ionicons name="home" size={24} color='#00B2E7' />
                 </TouchableOpacity>
             </Link>
-            <Link href="/setting" asChild>
-                <TouchableOpacity
-                    className=" p-2 rounded-2xl flex flex-row items-center justify-center gap-2"
-                >
-                    <Ionicons name="settings" size={24} color="#00B2E7" />
-                </TouchableOpacity>
-            </Link>
 
+            <View className=' flex flex-row gap-2 items-center justify-end'>
+                <Pressable onPress={toggleTheme} className='p-2'>
+                    <Animated.View key={String(theme.dark)} entering={FadeInRight.duration(500)} exiting={FadeOutLeft.duration(500)}>
+                        {theme.dark ?
+                            <Ionicons name='sunny' size={24} color={'white'} />
+                            :
+                            <Ionicons name='moon' size={24} color={'black'} />
+                        }
+                    </Animated.View>
+                </Pressable>
+            </View>
         </View>
     )
 }

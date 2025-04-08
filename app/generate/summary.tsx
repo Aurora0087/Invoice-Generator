@@ -34,7 +34,7 @@ export default function InvoiceSummary() {
         <ScrollView className="flex-1 bg-gray-100 dark:bg-gray-900">
             <View className="gap-4 p-6">
                 {/* sender info */}
-                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-4 rounded-2xl">
                     <Text className="dark:text-white text-2xl font-bold mb-4">From</Text>
                     <View className="flex gap-1">
                         <Text className="text-base font-medium dark:text-white">Sender Name :</Text>
@@ -68,7 +68,7 @@ export default function InvoiceSummary() {
                 </View>
 
                 {/* Client info */}
-                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-4 rounded-2xl">
                     <Text className="dark:text-white text-2xl font-bold mb-4">To</Text>
                     <View className="flex gap-1">
                         <Text className="text-base font-medium dark:text-white">Client Name :</Text>
@@ -97,7 +97,7 @@ export default function InvoiceSummary() {
                 </View>
 
                 {/* invoice info */}
-                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-4 rounded-2xl">
                     <Text className="dark:text-white text-2xl font-bold mb-4">Invoice Details</Text>
                     <View className="flex gap-1">
                         <Text className="text-base font-medium dark:text-white">Invoice ID :</Text>
@@ -112,13 +112,13 @@ export default function InvoiceSummary() {
                         </Text>
                     </View>
                     <View className="flex gap-1">
-                        <Text className="text-base font-medium dark:text-white">Date(dd/mm/yyyy) :</Text>
+                        <Text className="text-base font-medium dark:text-white">Date(dd-mm-yyyy) :</Text>
                         <Text className="text-base font-medium text-pretty mb-1 text-gray-700 dark:text-slate-400 flex-shrink">
                             {newInvoice.invoiceInfo.date}
                         </Text>
                     </View>
                     <View className="flex gap-1">
-                        <Text className="text-base font-medium dark:text-white">Due Date(dd/mm/yyyy) :</Text>
+                        <Text className="text-base font-medium dark:text-white">Due Date(dd-mm-yyyy) :</Text>
                         <Text className="text-base font-medium mb-1 text-gray-700 dark:text-slate-400">
                             {newInvoice.invoiceInfo.dueDate}
                         </Text>
@@ -126,7 +126,7 @@ export default function InvoiceSummary() {
                 </View>
 
                 {/* Items info */}
-                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-4 rounded-2xl">
                     <Text className="dark:text-white text-2xl font-bold mb-4">Items</Text>
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-base flex-shrink font-bold dark:text-white w-1/3">Item</Text>
@@ -148,7 +148,7 @@ export default function InvoiceSummary() {
                 </View>
 
                 {/* Total */}
-                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="gap-1 bg-gray-200 dark:bg-gray-700 border-b border-r dark:border-white p-4 rounded-2xl">
                     <Text className="dark:text-white text-2xl font-bold mb-4">Totals</Text>
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-base font-medium dark:text-white">Subtotal</Text>
@@ -172,7 +172,7 @@ export default function InvoiceSummary() {
                     </View>
                 </View>
 
-                <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-2 rounded-2xl">
+                <View className="bg-gray-200 dark:bg-gray-700 gap-1 border-b border-r dark:border-white p-4 rounded-2xl">
                     <View className="flex-row justify-between mb-2">
                         <Text className="text-base font-medium dark:text-white">Payed Amount</Text>
                         <Text className="text-base font-medium dark:text-white">{newInvoice.currency}{newInvoice.ItemsInfo.payed.toFixed(2)}</Text>

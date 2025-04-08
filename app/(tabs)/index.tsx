@@ -1,6 +1,6 @@
 import InvoicePreviewCard from '@/components/invoices/InvoicePreviewCard';
 import PaymentDetailsCard from '@/components/PaymentDetailsCard';
-import { deleteInvoice, getInvoiceStatistics } from '@/db/db';
+import { deleteInvoice, getInvoiceStatistics, initDatabase } from '@/db/db';
 import Ionicons from '@expo/vector-icons/build/Ionicons';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';

@@ -171,7 +171,7 @@ export default function index() {
                     </Pressable>}
 
                 <Pressable onPress={toggleSheet} className=' p-4 bg-[#00B2E7] rounded-xl flex-1 flex flex-row justify-center items-center'>
-                    <Ionicons name='search' size={16} />
+                    <Ionicons name='search' size={16} color={'white'} />
                 </Pressable>
             </View>
             <View className=' flex flex-row items-center justify-between mt-8 px-2'>

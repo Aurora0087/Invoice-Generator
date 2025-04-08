@@ -128,7 +128,7 @@ export default function InvoiceDetailsScreen() {
             return
         }
         addAllData(invoice);
-        router.push('/(tabs)/preview');
+        router.push({ pathname: '/(tabs)/preview', params: { invoiceId: `${id}` } });
     }
 
     function editInvoice() {
@@ -227,13 +227,13 @@ export default function InvoiceDetailsScreen() {
                                     </Text>
                                 </View>
                                 <View className="flex gap-1">
-                                    <Text className="text-base font-medium dark:text-white">Date(dd/mm/yyyy) :</Text>
+                                    <Text className="text-base font-medium dark:text-white">Date(dd-mm-yyyy) :</Text>
                                     <Text className="text-base font-medium text-pretty mb-1 text-gray-700 dark:text-slate-400 flex-shrink">
                                         {invoice.invoiceInfo.date}
                                     </Text>
                                 </View>
                                 <View className="flex gap-1">
-                                    <Text className="text-base font-medium dark:text-white">Due Date(dd/mm/yyyy) :</Text>
+                                    <Text className="text-base font-medium dark:text-white">Due Date(dd-mm-yyyy) :</Text>
                                     <Text className="text-base font-medium mb-1 text-gray-700 dark:text-slate-400">
                                         {invoice.invoiceInfo.dueDate}
                                     </Text>

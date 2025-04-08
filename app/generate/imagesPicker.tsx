@@ -5,12 +5,12 @@ import { CurrencyProp, useStore } from '@/store/store';
 import { Ionicons } from '@expo/vector-icons';
 
 import * as ExpoImagePicker from 'expo-image-picker';
-import RNPickerSelect from 'react-native-picker-select';
+import { Picker } from '@react-native-picker/picker';
 
 import * as FileSystem from 'expo-file-system';
 
 import { Image } from 'react-native';
-import { getSetting, initDatabase, saveSetting } from '@/db/db';
+import { getSetting, saveSetting } from '@/db/db';
 import { LinearGradient } from 'expo-linear-gradient';
 
 
@@ -29,8 +29,6 @@ export default function ImagePicker() {
     useEffect(() => {
         async function setUp() {
             try {
-                await initDatabase();
-
                 // Load saved settings
                 const savedLogo = await getSetting('logoImageUrl');
                 const savedSign = await getSetting('signImageUrl');
@@ -256,20 +254,49 @@ export default function ImagePicker() {
 
                 <Text className=' dark:text-white text-2xl font-bold py-8 text-center'>Currency</Text>
 
-                <View className=' bg-[#00B2E7] rounded-2xl text-white'>
-                    <RNPickerSelect
+                <View className='overflow-hidden rounded-2xl text-white'>
+                    <Picker
                         onValueChange={(c, i) =>
                             setCurrency(c)
                         }
-                        value={currency}
-                        placeholder={{ label: 'Select currency', value: '' }}
-                        items={[
-                            { label: 'None', value: '' },
-                            { label: 'INR ₹', value: '₹' },
-                            { label: 'USD $', value: '$' },
-                            { label: 'EURO €', value: '€' },
-                        ]}
-                    />
+                        selectedValue={currency}
+                        className=' text-white'
+                        mode='dropdown'
+                        style={{
+                            backgroundColor: "#00B2E7",
+                            color: "white"
+                        }}
+                        dropdownIconColor={'white'}
+                    >
+                        <Picker.Item
+                            style={{
+                                backgroundColor: "#00B2E7",
+                                color: "white",
+                            }}
+                            label="None"
+                            value="" />
+                        <Picker.Item
+                            style={{
+                                backgroundColor: "#00B2E7",
+                                color: "white",
+                            }}
+                            label="INR ₹"
+                            value="₹" />
+                        <Picker.Item
+                            style={{
+                                backgroundColor: "#00B2E7",
+                                color: "white",
+                            }}
+                            label="USD $"
+                            value="$" />
+                        <Picker.Item
+                            style={{
+                                backgroundColor: "#00B2E7",
+                                color: "white",
+                            }}
+                            label="EURO €"
+                            value="€" />
+                    </Picker>
                 </View>
                 <TouchableOpacity
                     className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2 disabled:opacity-70"

@@ -1,6 +1,5 @@
 import { View, Pressable, LayoutChangeEvent } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import { Text } from '@react-navigation/elements';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -12,6 +11,7 @@ const icons = [
     (props?: any) => <Ionicons name='home-outline' size={16} {...props} />,
     (props?: any) => <Ionicons name='add' size={16} {...props} />,
     (props?: any) => <Ionicons name='document-text-outline' size={16} {...props} />,
+    (props?: any) => <Ionicons name='bar-chart-outline' size={16} {...props} />,
 ]
 
 export default function TabBar({ state, descriptors, navigation, }: BottomTabBarProps) {
@@ -40,7 +40,7 @@ export default function TabBar({ state, descriptors, navigation, }: BottomTabBar
     })
 
     useEffect(() => {
-        tabPositionX.value = withSpring(buttonW * state.index - (state.index > 0 ? 6 : 0), { duration: 800 });
+        tabPositionX.value = withSpring(buttonW * state.index - (state.index === 3 ? 0 : state.index > 0 ? 6 : 0), { duration: 800 });
     }, [state])
 
     return (

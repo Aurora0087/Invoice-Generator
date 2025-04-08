@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "invoice-generator",
-    "slug": "invoice-generator",
+    "name": "Invoice Generator-Offline",
+    "slug": "invoiceGeneratorOffline",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -12,10 +12,15 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.createwithdeb.invoiceGeneratorOffline",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +48,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "4d26fc8d-dcf6-468b-9d31-91315692de4b"
+      }
     }
   }
 }

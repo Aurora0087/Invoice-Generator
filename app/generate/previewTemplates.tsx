@@ -19,7 +19,6 @@ export default function InvoiceSummary() {
 
     const html = generateHtml(newInvoice);
 
-
     // Main function to generate and share PDF
     async function generatePdf() {
         try {

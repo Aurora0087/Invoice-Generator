@@ -92,8 +92,8 @@ export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewI
     const colorScheme = useColorScheme();
     const placeholderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
     return (
-        <View>
-            <View className="p-6">
+        <View className=' border-t border-black/30 dark:border-white/50'>
+            <View className="p-6 pt-0">
                 <Text className="dark:text-white text-2xl font-bold py-8 text-center">Items</Text>
 
                 {fields.map((field, index) => (
@@ -181,7 +181,7 @@ export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewI
                         {/* Item Subtotal */}
                         <View className="flex-row justify-end mt-2">
                             <Text className="text-base font-medium text-gray-700 dark:text-white">
-                                Subtotal: ${calculateItemSubtotal(items[index])}
+                                Subtotal: {invoice.currency}{calculateItemSubtotal(items[index])}
                             </Text>
                         </View>
                     </View>
@@ -272,9 +272,9 @@ export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewI
                 />
 
                 {/* Total */}
-                <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl mb-6">
+                <View className="bg-gray-200 dark:bg-gray-800 p-4 rounded-2xl mb-6">
                     <Text className="text-xl font-bold text-gray-800 dark:text-white text-right">
-                        Total: ${totalSum.toFixed(2)}
+                        Total: {invoice.currency}{totalSum.toFixed(2)}
                     </Text>
                 </View>
 
@@ -302,9 +302,9 @@ export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewI
                 />
 
                 {/* Due Amount */}
-                <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl mb-6">
+                <View className="bg-gray-200 dark:bg-gray-800 p-4 rounded-2xl mb-6">
                     <Text className="text-xl font-bold text-gray-800 dark:text-white text-right">
-                        Amount due: ${amountDue.toFixed(2)}
+                        Amount due: {invoice.currency}{amountDue.toFixed(2)}
                     </Text>
                 </View>
 
@@ -313,6 +313,7 @@ export default function ItemsInfo({ invoice, addItemsInfo, id }: { invoice: NewI
                     className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
+                    <Ionicons name="pencil" size={16} color='white' />
                     <Text className="text-white font-bold text-center text-base">Update Item info</Text>
                 </TouchableOpacity>
             </View>

@@ -3,7 +3,6 @@ import { SenderInfoSchemaProp } from '@/schema/sender';
 import { AVALABLECURRENCYES, CurrencyProp, NewInvoiceProp } from '@/store/store';
 import * as SQLite from 'expo-sqlite';
 import { SQLiteDatabase } from 'expo-sqlite';
-import { promise } from 'zod';
 
 // Database name
 const DB_NAME = 'invoiceApp.db';
@@ -12,7 +11,6 @@ const DB_NAME = 'invoiceApp.db';
 export const initDatabase = async (): Promise<SQLiteDatabase> => {
     try {
         const db = await SQLite.openDatabaseAsync(DB_NAME);
-
 
 
         await db.withTransactionAsync(
@@ -366,9 +364,6 @@ export function getInvoiceById(id: number): Promise<NewInvoiceProp | null> {
         resolve(invoice);
     })
 }
-
-// Get invoice by invoice number
-
 // Update an existing invoice
 
 export function updateInvoice(id: number, invoice: NewInvoiceProp): Promise<boolean> {
@@ -476,7 +471,8 @@ export function searchInvoices(criteria: {
     invoiceNumber?: string,
     recipientName?: string,
     fromDate?: string,
-    toDate?: string
+    toDate?: string,
+    currency?: string,
 }): Promise<{ id: number, invoiceNumber: string, recipientName: string, date: string, amount: number, currency: string }[]> {
     return new Promise(async (resolve, reject) => {
 
@@ -512,6 +508,11 @@ export function searchInvoices(criteria: {
         if (criteria.toDate) {
             query += ` AND i.date <= ?`;
             params.push(criteria.toDate);
+        }
+
+        if (criteria.currency) {
+            query += ` AND i.currency = ?`;
+            params.push(criteria.currency);
         }
 
         query += ` ORDER BY i.date DESC`;
@@ -572,8 +573,8 @@ export function searchInvoices(criteria: {
         resolve(invoices);
     })
 }
-// Generate invoice statistics
 
+// Generate invoice statistics
 
 export function getInvoiceStatistics(): Promise<{
     totalInvoices: number,
@@ -722,3 +723,281 @@ export function getInvoiceStatistics(): Promise<{
         })
     })
 }
+
+export const deleteAllDbData = async (): Promise<void> => {
+    const db = await getDatabase();
+    try {
+        console.log('Attempting to delete all data...');
+        await db.withTransactionAsync(async () => {
+            await db.execAsync('DELETE FROM settings;');
+            //console.log('Deleted data from settings.');
+            await db.execAsync('DELETE FROM invoices;');
+            //console.log('Deleted data from invoices and related tables (via CASCADE).');
+            await db.execAsync("DELETE FROM sqlite_sequence WHERE name='invoices';");
+            await db.execAsync("DELETE FROM sqlite_sequence WHERE name='sender_info';");
+            await db.execAsync("DELETE FROM sqlite_sequence WHERE name='recipient_info';");
+            await db.execAsync("DELETE FROM sqlite_sequence WHERE name='invoice_items';");
+            await db.execAsync('DELETE FROM sender_info;');
+            await db.execAsync('DELETE FROM recipient_info;');
+            await db.execAsync('DELETE FROM invoice_items;');
+            //console.log('Reset auto-increment counters.');
+        });
+        //console.log('All data deleted successfully.');
+    } catch (error) {
+        //console.error('Failed to delete all data:', error);
+        throw error;
+    }
+};
+
+export type AnalyticsInterval = 'daily' | 'weekly' | 'monthly';
+
+export interface AnalyticsOptions {
+    fromDate?: Date;
+    toDate?: Date;
+    interval?: AnalyticsInterval;
+    currency?: string;
+}
+
+export interface TimeSeriesDataPoint {
+    intervalLabel: string; // e.g., '2023-10-26', '2023-W43', '2023-10'
+    /** Sum of (item.price * item.quantity) for all invoices starting in this interval */
+    totalItemRevenue: number;
+    invoiceCount: number;
+    /** Sum of 'payed' amounts for all invoices starting in this interval */
+    totalPaidAmount: number;
+}
+
+const convertDdMmYyyyToIsoSql = (dateStringColumn: string): string => {
+    // Extracts parts and concatenates: YYYY-MM-DD
+    return `substr(${dateStringColumn}, 7, 4) || '-' || substr(${dateStringColumn}, 4, 2) || '-' || substr(${dateStringColumn}, 1, 2)`;
+};
+
+export interface AnalyticsData {
+    summary: {
+        /** Sum of (item.price * item.quantity) across all filtered invoices */
+        totalItemRevenue: number;
+        totalInvoices: number;
+        /** Sum of 'payed' amounts across all filtered invoices */
+        totalPaidAmount: number;
+        /** Calculated: summary.totalItemRevenue - summary.totalPaidAmount. Note: Based on item revenue, not final invoice total. */
+        estimatedOutstanding: number;
+        /** Calculated: summary.totalItemRevenue / summary.totalInvoices */
+        averageItemRevenuePerInvoice: number;
+        dateRange: {
+            from: string | null; // ISO Date string 'YYYY-MM-DD'
+            to: string | null;   // ISO Date string 'YYYY-MM-DD'
+        };
+        interval: AnalyticsInterval;
+        currency?: string | null;
+    };
+    timeSeries: TimeSeriesDataPoint[];
+    clientInvoiceData: ClientInvoiceData[];
+}
+
+export interface ClientInvoiceData {
+    clientEmail: string;  // Use email as the client identifier
+    clientName: string;  // Keep the name for display purposes
+    totalInvoiceAmount: number; // Sum of invoice totals (not item revenue)
+    totalInvoices: number;
+    totalPaidAmount: number;
+    totalUnpaidAmount: number;
+}
+
+/**
+ * Retrieves aggregated invoice data for analytics purposes based on specified options.
+ *
+ * @param options - Optional filtering and grouping parameters.
+ * @param options.fromDate - Start date (inclusive).
+ * @param options.toDate - End date (inclusive).
+ * @param options.interval - Grouping interval ('daily', 'weekly', 'monthly'). Defaults to 'monthly'.
+ * @returns A Promise resolving to an AnalyticsData object.
+ */
+export const getAnalyticsData = async (
+    options: AnalyticsOptions = {}
+): Promise<AnalyticsData> => {
+    const db = await getDatabase();
+    const { fromDate, toDate } = options;
+    const interval = options.interval || 'monthly'; // Default to monthly
+    const currency = options.currency || "";
+
+    // --- 1. Prepare SQL Filters and Grouping ---
+    const whereClauses: string[] = [];
+    const params: (string | number)[] = [];
+    let fromDateStr: string | null = null;
+    let toDateStr: string | null = null;
+
+    const dateConversionSql = convertDdMmYyyyToIsoSql('i.date');
+
+    if (fromDate) {
+        // Format the parameter to YYYY-MM-DD for SQL comparison
+        const fromDateParam = fromDate.toISOString().slice(0, 10);
+        fromDateStr = fromDateParam; // Store YYYY-MM-DD for summary
+
+        whereClauses.push(`date(${dateConversionSql}) >= date(?)`);
+        params.push(fromDateParam); // Push the correctly formatted YYYY-MM-DD string
+    }
+    if (toDate) {
+        // Format the parameter to YYYY-MM-DD for SQL comparison
+        const toDateParam = toDate.toISOString().slice(0, 10);
+        toDateStr = toDateParam; // Store YYYY-MM-DD for summary
+
+        whereClauses.push(`date(${dateConversionSql}) <= date(?)`);
+        params.push(toDateParam); // Push the correctly formatted YYYY-MM-DD string
+    }
+    whereClauses.push('i.currency = ?');
+    params.push(currency);
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    let intervalFormat: string;
+    let intervalColumnName = 'intervalLabel'; // Alias for the formatted date/week/month
+
+    // Apply strftime to the *converted* date string
+    switch (interval) {
+        case 'daily':
+            intervalFormat = `strftime('%Y-%m-%d', ${dateConversionSql})`;
+            break;
+        case 'weekly':
+            intervalFormat = `strftime('%Y-W%W', ${dateConversionSql})`;
+            break;
+        case 'monthly':
+        default:
+            intervalFormat = `strftime('%Y-%m', ${dateConversionSql})`;
+            break;
+    }
+
+    // --- 2. Construct and Execute the Main Query ---
+    // This query calculates sums based on invoice items grouped by the chosen interval.
+    const sql = `
+      SELECT
+        ${intervalFormat} AS ${intervalColumnName},
+        SUM(ii.price * ii.quantity) AS totalItemRevenue,
+        COUNT(DISTINCT i.id) AS invoiceCount,
+        SUM(i.payed) AS totalPaidAmount -- Sum 'payed' field for invoices in the interval
+      FROM invoices AS i
+      JOIN invoice_items AS ii ON i.id = ii.invoiceId
+      ${whereSql}
+      GROUP BY ${intervalColumnName}
+      ORDER BY ${intervalColumnName} ASC;
+    `;
+
+    console.log("Executing analytics query:", sql, params); // For debugging
+
+    let timeSeriesResults: TimeSeriesDataPoint[] = [];
+    try {
+        // We expect the results to match the TimeSeriesDataPoint structure
+        timeSeriesResults = await db.getAllAsync<TimeSeriesDataPoint>(sql, ...params);
+        console.log(`Analytics query returned ${timeSeriesResults.length} rows.`);
+    } catch (error: any) {
+        console.error("Error executing analytics query:", error);
+        throw new Error(`Failed to retrieve analytics data: ${error.message}`);
+    }
+
+    // --- 3. Calculate Summary Statistics ---
+    // We could run a separate SUM query for totals, but iterating the results is often fine
+    // unless dealing with *massive* datasets where a separate SUM query might be faster.
+    let summaryTotalItemRevenue = 0;
+    let summaryTotalInvoices = 0;
+    let summaryTotalPaidAmount = 0; // This will be recalculated accurately below
+
+    timeSeriesResults.forEach(point => {
+        summaryTotalItemRevenue += point.totalItemRevenue || 0;
+        summaryTotalInvoices += point.invoiceCount || 0;
+        // The totalPaidAmount from the grouped query might be inflated if an invoice spans items
+        // Let's calculate the *actual* total paid for the *unique* invoices counted.
+    });
+
+    // Recalculate totalPaidAmount accurately by summing 'payed' only once per unique invoice within the date range
+    let accurateTotalPaid = 0;
+    if (summaryTotalInvoices > 0) {
+        const paidSql = `
+            SELECT SUM(payed) as totalPaid
+            FROM invoices i
+            ${whereSql};
+        `;
+        try {
+            const paidResult = await db.getFirstAsync<{ totalPaid: number }>(paidSql, ...params);
+            accurateTotalPaid = paidResult?.totalPaid || 0;
+            // Update timeSeries results with proportionally distributed paid amounts (approximation)
+            if (summaryTotalItemRevenue > 0) {
+                timeSeriesResults = timeSeriesResults.map(point => ({
+                    ...point,
+                    // Distribute total paid based on interval's revenue share
+                    totalPaidAmount: (point.totalItemRevenue / summaryTotalItemRevenue) * accurateTotalPaid
+                }));
+            } else {
+                // If no revenue, distribute evenly (or keep as 0)
+                timeSeriesResults = timeSeriesResults.map(point => ({
+                    ...point,
+                    totalPaidAmount: accurateTotalPaid / timeSeriesResults.length // Or just 0
+                }));
+            }
+
+        } catch (error) {
+            console.error("Error fetching total paid amount:", error);
+            // Decide how to handle this - maybe proceed with potentially inaccurate sum from first query?
+            // Or throw? Let's log and use 0 for now.
+            accurateTotalPaid = 0; // Or throw error?
+            timeSeriesResults = timeSeriesResults.map(point => ({ ...point, totalPaidAmount: 0 }));
+        }
+    } else {
+        // If no invoices, ensure paid amount is 0
+        timeSeriesResults = timeSeriesResults.map(point => ({ ...point, totalPaidAmount: 0 }));
+    }
+
+
+    const averageItemRevenuePerInvoice = summaryTotalInvoices > 0
+        ? summaryTotalItemRevenue / summaryTotalInvoices
+        : 0;
+
+    const estimatedOutstanding = summaryTotalItemRevenue - accurateTotalPaid;
+
+
+    // --- 4. Calculate Client Invoice Data ---
+    const clientInvoiceSql = `
+        SELECT
+        ${intervalFormat} AS ${intervalColumnName},
+            ri.email AS clientEmail,
+            ri.name AS clientName,
+            SUM(ii.price * ii.quantity) AS totalInvoiceAmount,
+            COUNT(i.id) AS totalInvoices,
+            SUM(i.payed) AS totalPaidAmount,
+            SUM(ii.price * ii.quantity - i.payed) AS totalUnpaidAmount
+        FROM invoices AS i
+        JOIN recipient_info AS ri ON i.id = ri.invoiceId
+        JOIN invoice_items AS ii ON i.id = ii.invoiceId
+        ${whereSql}
+        GROUP BY ${intervalColumnName},ri.email, ri.name
+        ORDER BY ri.name,${intervalColumnName} ASC;
+    `;
+
+    let clientInvoiceData: ClientInvoiceData[] = [];
+    try {
+        clientInvoiceData = await db.getAllAsync<ClientInvoiceData>(clientInvoiceSql, ...params);
+    } catch (error: any) {
+        console.error("Error executing client invoice data query:", error);
+        throw new Error(`Failed to retrieve client invoice data: ${error.message}`);
+    }
+
+
+    // --- 5. Assemble Final Result ---
+    const analyticsData: AnalyticsData = {
+        summary: {
+            totalItemRevenue: summaryTotalItemRevenue,
+            totalInvoices: summaryTotalInvoices,
+            totalPaidAmount: accurateTotalPaid,
+            estimatedOutstanding: estimatedOutstanding,
+            averageItemRevenuePerInvoice: averageItemRevenuePerInvoice,
+            dateRange: {
+                from: fromDateStr,
+                to: toDateStr,
+            },
+            interval: interval,
+            currency: currency
+        },
+        timeSeries: timeSeriesResults,
+        clientInvoiceData: clientInvoiceData,
+    };
+
+    return analyticsData;
+};

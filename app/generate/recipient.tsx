@@ -18,7 +18,7 @@ export default function Recipient() {
         defaultValues: {
             name: '',
             address: '',
-            email: '',
+            email: undefined,
             phone: ''
         }
     });

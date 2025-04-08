@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useStore } from '@/store/store';
-import { Tabs, useRouter } from 'expo-router';
+import { Link, Tabs, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Print from 'expo-print';
 import { generateHtml, getImageAsBase64 } from '@/utils';
 import { shareAsync } from 'expo-sharing';
@@ -9,6 +9,11 @@ import WebView from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function preview() {
+
+    const param = useLocalSearchParams();
+
+
+    const invoiceId = Number(param.invoiceId);
 
     const [subtotal, setSubtotal] = useState(0);
     const [tax, setTax] = useState(0);
@@ -90,6 +95,16 @@ export default function preview() {
                     color: 'white',
                 },
             }} />
+            <View className=' w-fit'>
+                <Link href={`/invoices/details/${newInvoice}`} asChild>
+                    <TouchableOpacity
+                        className=" bg-[#00B2E7] text-white py-4 px-8 rounded-2xl flex flex-row items-center gap-2 self-start"
+                    >
+                        <Ionicons name="arrow-back" size={16} color='white' />
+                        <Text className="text-white font-bold text-center text-base w-fit">Back</Text>
+                    </TouchableOpacity>
+                </Link>
+            </View>
             <ScrollView horizontal={true} scrollEnabled style={{ marginTop: 10 }}>
                 <View style={{ width: 720, minHeight: 600, height: '100%', flex: 1 }}>
                     <WebView

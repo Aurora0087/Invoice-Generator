@@ -21,7 +21,7 @@ export default function PaymentDetailsCard({ currency, paidAmount, unpaidAmount 
                 end={{ x: 1, y: 1 }}
             >
                 <View>
-                    <Text className=' text-white text-center text-sm'>Currency : {currency === '' ? 'NONE' : currency}</Text>
+                    <Text className=' text-white text-center text-sm'>Currency : {currency === '' ? 'N/A' : currency}</Text>
                     <Text className=' text-white text-center'>Total Invoices Created</Text>
                     <Text
                         style={{

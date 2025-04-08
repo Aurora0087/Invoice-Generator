@@ -8,6 +8,7 @@ import { formatDate, parseDate } from '@/utils';
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { updateInvoice } from '@/db/db';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function InvoiceInfo({ invoice, addInvoiceInfo, id }: {
     invoice: NewInvoiceProp, id: number, addInvoiceInfo: (invoiceInfo: {
@@ -55,8 +56,8 @@ export default function InvoiceInfo({ invoice, addInvoiceInfo, id }: {
     const colorScheme = useColorScheme();
     const placeholderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
     return (
-        <View>
-            <View className="p-6">
+        <View className=' border-t border-black/30 dark:border-white/50'>
+            <View className="p-6 pt-0">
                 <Text className="dark:text-white text-2xl font-bold py-8 text-center">Invoice Info</Text>
 
                 {/* Invoice Number Input */}
@@ -178,6 +179,7 @@ export default function InvoiceInfo({ invoice, addInvoiceInfo, id }: {
                     className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
+                    <Ionicons name="pencil" size={16} color='white' />
                     <Text className="text-white font-bold text-center text-base">Update invoice info</Text>
                 </TouchableOpacity>
             </View>

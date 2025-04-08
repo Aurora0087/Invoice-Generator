@@ -33,6 +33,9 @@ export default function TabLayout() {
             <Tabs.Screen name='invoices/details/index' options={{
                 title: 'Invoices',
             }} />
+            <Tabs.Screen name='analytics' options={{
+                title: 'Graph',
+            }} />
             <Tabs.Screen name='invoices/edit' options={{
                 href: null,
             }} />

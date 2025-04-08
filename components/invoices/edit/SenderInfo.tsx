@@ -14,6 +14,7 @@ import { SenderInfoSchema, SenderInfoSchemaProp } from '@/schema/sender'
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { updateInvoice } from '@/db/db';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SenderInfo({ invoice, id, addSenderInfo }: { invoice: NewInvoiceProp, id: number, addSenderInfo: (senderInfo: SenderInfoSchemaProp) => void }) {
 
@@ -44,7 +45,7 @@ export default function SenderInfo({ invoice, id, addSenderInfo }: { invoice: Ne
     const placeholderColor = colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
     return (
         <View>
-            <View className=' p-6'>
+            <View className=' p-6 pt-0'>
                 <Text className=' dark:text-white text-2xl font-bold py-8 text-center'>Sender Info</Text>
                 {/* Name Input */}
                 <Controller
@@ -163,7 +164,8 @@ export default function SenderInfo({ invoice, id, addSenderInfo }: { invoice: Ne
                     className=" bg-[#00B2E7] text-white py-4 px-6 rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={handleSubmit(onSubmit)}
                 >
-                    <Text className="text-white font-bold text-center text-base">Update Client info</Text>
+                    <Ionicons name="pencil" size={16} color='white' />
+                    <Text className="text-white font-bold text-center text-base">Update Sender info</Text>
                 </TouchableOpacity>
             </View>
         </View>

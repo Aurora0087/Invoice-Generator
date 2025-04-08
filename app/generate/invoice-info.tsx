@@ -121,9 +121,10 @@ export default function InvoiceInfo() {
                             {/* Date display/button */}
                             <TouchableOpacity
                                 onPress={() => setDatePickerVisible(true)}
-                                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-2xl p-3"
+                                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-2xl p-3 flex flex-row items-center justify-between"
                             >
                                 <Text className="text-gray-800 dark:text-gray-200">{formatDate(value)}</Text>
+                                <Ionicons name="calendar-outline" size={20} color={"#00B2E7"} />
                             </TouchableOpacity>
 
                             {/* Modal Date picker */}
@@ -156,9 +157,10 @@ export default function InvoiceInfo() {
                             {/* Due date display/button */}
                             <TouchableOpacity
                                 onPress={() => setDueDatePickerVisible(true)}
-                                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-2xl p-3"
+                                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-2xl p-3 flex flex-row items-center justify-between"
                             >
                                 <Text className="text-gray-800 dark:text-gray-200">{formatDate(value)}</Text>
+                                <Ionicons name="calendar-outline" size={20} color={"#00B2E7"} />
                             </TouchableOpacity>
 
                             {/* Modal Due date picker */}
