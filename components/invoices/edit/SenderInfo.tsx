@@ -46,7 +46,7 @@ export default function SenderInfo({ invoice, id, addSenderInfo }: { invoice: Ne
     return (
         <View>
             <View className=' p-6 pt-0'>
-                <Text className=' dark:text-white text-2xl font-bold py-8 text-center'>Sender Info</Text>
+                <Text className=' dark:text-white text-2xl font-bold pb-8 pt-2 text-center'>Sender Info</Text>
                 {/* Name Input */}
                 <Controller
                     control={control}

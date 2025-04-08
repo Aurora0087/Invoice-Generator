@@ -46,7 +46,7 @@ export default function TabBar({ state, descriptors, navigation, }: BottomTabBar
     return (
         <View className=' relative w-full flex justify-center items-center'>
             <View className=' absolute bottom-2 w-fit'>
-                <View onLayout={onTabBarLayout} className=' relative bg-white flex justify-center items-center flex-row gap-[32px] p-[8px] px-[16px] bottom-4 rounded-full overflow-hidden'>
+                <View onLayout={onTabBarLayout} className=' relative bg-white flex justify-center shadow border border-black/10 items-center flex-row gap-[32px] p-[8px] px-[16px] bottom-4 rounded-full overflow-hidden'>
                     <Animated.View style={[{
                         height: diementions.h - 16,
                         width: buttonW - 16

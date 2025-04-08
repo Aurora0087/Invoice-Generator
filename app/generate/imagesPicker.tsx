@@ -210,20 +210,32 @@ export default function ImagePicker() {
                 <Text className=' dark:text-white text-2xl font-bold pt-8 text-center'>Logo image for Invoice</Text>
 
                 <TouchableOpacity
-                    className=" bg-[#00B2E7] text-black rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
+                    className="bg-[#00B2E7] text-black rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={pickLogoImage}
                 >
                     <LinearGradient
                         colors={['#00B2E7', '#E064F7', '#FF8D6C']}
-                        className='h-full w-full py-4 px-6 flex flex-col justify-between items-center text-center'
+                        className='h-full w-full py-4 px-6 flex flex-row justify-center gap-2 items-center text-center'
                         style={{ borderRadius: 16 }}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        {logoImageUrl === null ?
-                            <Text className="text-white font-bold text-center text-base">Pick Logo Image</Text>
+                        {(logoImageUrl === null || logoImageUrl.length < 1) ?
+                            <>
+                                <Ionicons name="images" size={16} color='white' />
+                                <Text className="text-white font-bold text-center text-base">Pick Logo Image</Text>
+                            </>
                             :
-                            <Image source={{ uri: logoImageUrl }} className='w-48 h-48 border rounded-2xl' />}
+                            <View className='w-48 h-48 border rounded-2xl relative overflow-hidden'>
+                                <Image source={{ uri: logoImageUrl }} className=' w-full h-full object-cover' />
+                                <TouchableOpacity
+                                    onPress={() => { setLogoImageUrl(null) }}
+                                    className=' absolute right-2 top-2 bg-red-400 rounded-full p-2'>
+                                    <Ionicons name='trash-bin' size={16} color={"white"} />
+                                </TouchableOpacity>
+                            </View>
+
+                        }
                     </LinearGradient>
 
                 </TouchableOpacity>
@@ -231,22 +243,30 @@ export default function ImagePicker() {
                 <Text className=' dark:text-white text-2xl font-bold pt-8 text-center'>Sign image for Invoice</Text>
 
                 <TouchableOpacity
-                    className=" bg-[#00B2E7] text-black rounded-2xl mt-8 flex flex-1 items-center justify-center"
+                    className="  bg-[#00B2E7] text-black rounded-2xl mt-8 flex flex-row items-center justify-center gap-2"
                     onPress={pickSignImage}
                 >
                     <LinearGradient
                         colors={['#00B2E7', '#E064F7', '#FF8D6C']}
-                        className='h-full w-full py-4 px-6 flex flex-col justify-between items-center text-center'
+                        className='h-full w-full py-4 px-6 flex flex-row justify-center gap-2 items-center text-center'
                         style={{ borderRadius: 16 }}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        {signImageUrl === null ?
-                            <Text className="text-white font-bold text-center text-base">Pick Sign Image</Text>
+                        {(signImageUrl === null || signImageUrl.length < 2) ?
+                            <>
+                                <Ionicons name="images" size={16} color='white' />
+                                <Text className="text-white font-bold text-center text-base">Pick Sign Image</Text>
+                            </>
                             :
-                            <Image
-                                source={{ uri: signImageUrl }}
-                                className=' w-full aspect-video' />
+                            <View className=' w-full aspect-video border rounded-2xl relative overflow-hidden'>
+                                <Image source={{ uri: signImageUrl }} className=' w-full h-full object-cover' />
+                                <TouchableOpacity
+                                    onPress={() => { setSignImageUrl(null) }}
+                                    className=' absolute right-2 top-2 bg-red-400 rounded-full p-2'>
+                                    <Ionicons name='trash-bin' size={16} color={"white"} />
+                                </TouchableOpacity>
+                            </View>
                         }
                     </LinearGradient>
 

@@ -91,7 +91,6 @@ export default function Analytics() {
         const fetchData = async () => {
             setLoading(true);
             setError(null);
-            console.log(`Fetching data - Interval: ${selectedInterval}, From: ${fromDate?.toISOString()}, To: ${toDate?.toISOString()}`);
             try {
                 const options = {
                     interval: selectedInterval,
@@ -100,8 +99,6 @@ export default function Analytics() {
                     ...(toDate && { toDate }),     // Add if not null
                 };
                 const res = await getAnalyticsData(options);
-
-                console.log(res);
 
                 setAnalytics(res);
             } catch (fetchError: any) {
@@ -114,9 +111,9 @@ export default function Analytics() {
             }
         };
 
-        fetchData(); // Fetch data whenever a filter state changes
+        fetchData();
 
-    }, [selectedInterval, fromDate, toDate, fillerCurrency]); // Dependency array includes all filters
+    }, [selectedInterval, fromDate, toDate, fillerCurrency]);
 
     // --- Prepare Chart Data (Memoized) ---
     const chartData = useMemo(() => {

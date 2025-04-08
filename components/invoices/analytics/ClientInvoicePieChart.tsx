@@ -35,7 +35,7 @@ const ClientInvoicePieChart: React.FC<ClientInvoicePieChartProps> = ({
 
     const pieChartData = clientInvoiceData.map((item, index) => ({
         value: item.totalInvoiceAmount,
-        label: item.clientName,
+        label: item.clientName + (item.clientEmail ? item.clientEmail : ""),
         color: COLORS[index % COLORS.length], // Cycle through colors
         id: item.clientName, // Useful if you need to track selection
     }));
@@ -70,7 +70,7 @@ const ClientInvoicePieChart: React.FC<ClientInvoicePieChartProps> = ({
             </View>
             <View style={styles.legendContainer}>
                 {pieChartData.map((item, index) => (
-                    <View key={item.id} style={styles.legendItem}>
+                    <View key={index} style={styles.legendItem}>
                         <View style={[styles.legendColorBox, { backgroundColor: item.color }]} />
                         <Text style={styles.legendText}>
                             {item.label} - {(item.value / totalAmount * 100).toFixed(1)}%

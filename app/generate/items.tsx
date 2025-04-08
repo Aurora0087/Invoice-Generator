@@ -179,7 +179,7 @@ export default function Items() {
                         {/* Item Subtotal */}
                         <View className="flex-row justify-end mt-2">
                             <Text className="text-base font-medium text-gray-700 dark:text-white">
-                                Subtotal: ${calculateItemSubtotal(items[index])}
+                                Subtotal: {calculateItemSubtotal(items[index])}
                             </Text>
                         </View>
                     </View>
@@ -272,7 +272,7 @@ export default function Items() {
                 {/* Total */}
                 <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl mb-6">
                     <Text className="text-xl font-bold text-gray-800 dark:text-white text-right">
-                        Total: ${totalSum.toFixed(2)}
+                        Total: {totalSum.toFixed(2)}
                     </Text>
                 </View>
 
@@ -302,7 +302,7 @@ export default function Items() {
                 {/* Due Amount */}
                 <View className="bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl mb-6">
                     <Text className="text-xl font-bold text-gray-800 dark:text-white text-right">
-                        Amount due: ${amountDue.toFixed(2)}
+                        Amount due: {amountDue.toFixed(2)}
                     </Text>
                 </View>
 

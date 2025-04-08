@@ -11,7 +11,7 @@ export default function PaymentDetailsCard({ currency, paidAmount, unpaidAmount 
             width: Dimensions.get('window').width - 32,
             height: Dimensions.get('window').width / 2
         }}
-            className=' rounded-2xl'
+            className=' rounded-2xl overflow-hidden'
         >
             <LinearGradient
                 colors={['#00B2E7', '#E064F7', '#FF8D6C']}
